@@ -24,7 +24,7 @@ x_ref = np.loadtxt("../data/Result.txt")
 
 # computation
 counter1 = bicgstab_counter()
-x, exit_code = bicgstab(A, b, tol=1e-100, callback=counter1)
+x, exit_code = bicgstab(A, b, tol=1e-20, callback=counter1)
 
 # post
 plt.figure()
@@ -38,7 +38,7 @@ counter2 = bicgstab_counter()
 sA = sparse.csc_matrix(A)
 sA_iLU = sparse.linalg.spilu(sA)
 M = sparse.linalg.LinearOperator((918, 918), sA_iLU.solve)
-x_precond, exit_code = bicgstab(A, b, tol=1e-100, M=M, callback=counter2)
+x_precond, exit_code = bicgstab(A, b, tol=1e-20, M=M, callback=counter2)
 
 # post
 plt.figure()
