@@ -22,8 +22,9 @@ ylabel("Jacobi")
 grid on
 hold off
 
-options = struct("type","ilutp","droptol",1e-6);
-[L,U] = ilu(A,options);
+% options = struct("type","ilutp","droptol",1e-6);
+% [L,U] = ilu(A,options);
+[L,U] = ilu(A);
 [x_precond,fl1,rr1,it1,rv1] = bicgstab(A,b,tol,maxit,L,U);
 
 figure,
@@ -40,6 +41,7 @@ semilogy((0:numel(rv0)-1)/2,rv0/norm(b),"-o")
 hold on
 semilogy((0:numel(rv1)-1)/2,rv1/norm(b),"-o")
 yline(tol,"r--");
-legend("No preconditioner","ILU preconditioner","Tolerance",Location="East")
+legend("No preconditioner","ILU preconditioner","Tolerance")
 xlabel("Iteration number")
 ylabel("Relative residual")
+

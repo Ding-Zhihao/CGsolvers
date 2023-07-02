@@ -1,11 +1,44 @@
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+from scipy import sparse
+from scipy.io import loadmat, savemat
 
 A = np.loadtxt("../data/Amatrix.txt")
 b = np.loadtxt("../data/bc_vector.txt").reshape(-1, 1)
 x_ref = np.loadtxt("../data/Result.txt").reshape(-1, 1)
 n = len(x_ref)
+
+# sA = sparse.csc_matrix(A)
+# sA_iLU = sparse.linalg.spilu(sA)
+# L=sA_iLU.L.toarray()
+# U=sA_iLU.U.toarray()
+
+# data = loadmat("../data/ILU_ref.mat")
+# L = data["L"].toarray()
+# U = data["U"].toarray()
+
+L = np.zeros(A.shape)
+U = np.zeros(A.shape)
+N = len(x_ref)
+
+U[0,0]=A[0,0]
+
+for i in range(n):
+    L[i,i]=1
+    
+for i in range(1, n):
+    U[i, :] = A[i, :]
+    for k in range(i):
+        if A[i, k] != 0:
+            L[i, k] = U[i, k] / U[k, k]
+            for j in range(k, n):
+                if A[i, j] != 0:
+                    U[i, j] = U[i, j] - L[i, k] * U[k, j]
+
+M=np.matmul(L, U)
+A=np.matmul(np.linalg.inv(M), A)
+b=np.dot(np.linalg.inv(M), b)
 
 converged = False
 x = np.zeros((n, 1))
@@ -21,7 +54,6 @@ tol = 1.0e-20
 limit = 100
 iters = 0
 tol_list=[]
-
 while iters < limit:
     iters = iters + 1
     tol_current = np.linalg.norm(r) / np.linalg.norm(b)
