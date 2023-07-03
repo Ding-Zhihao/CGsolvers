@@ -6,18 +6,6 @@ from scipy import sparse
 from scipy.sparse import linalg
 from scipy.io import loadmat, savemat
 
-
-class bicgstab_counter(object):
-    def __init__(self, disp=True):
-        self._disp = disp
-        self.niter = 0
-
-    def __call__(self, xk=None):
-        self.niter += 1
-        if self._disp:
-            print("iter %3i" % (self.niter))
-
-
 # load data
 A = np.loadtxt("../data/Amatrix.txt")
 b = np.loadtxt("../data/bc_vector.txt")

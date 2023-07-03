@@ -4,42 +4,58 @@ import matplotlib.pyplot as plt
 from scipy import sparse
 from scipy.io import loadmat, savemat
 
+def ILU0(A):
+    L = np.zeros(A.shape)
+    U = np.zeros(A.shape)
+    n = len(x_ref)
+
+    U[0, 0] = A[0, 0]
+    for i in range(n):
+        L[i, i] = 1
+
+    for i in range(1, n):
+        U[i, :] = A[i, :]
+        for k in range(i):
+            if A[i, k] != 0:
+                L[i, k] = U[i, k] / U[k, k]
+                for j in range(k, n):
+                    if A[i, j] != 0:
+                        U[i, j] = U[i, j] - L[i, k] * U[k, j]
+    return L, U
+
+
+def solve_upper(U, rhs):
+    x = np.zeros(rhs.shape)
+    for i in range(len(x) - 1, -1, -1):
+        x[i] = rhs[i]
+        for j in range(i + 1, len(x)):
+            x[i] -= U[i, j] * x[j]
+        x[i] /= U[i, i]
+    return x
+
+
+def solve_lower(L, rhs):
+    x = np.zeros(rhs.shape)
+    for i in range(len(x)):
+        x[i] = rhs[i]
+        for j in range(i):
+            x[i] -= L[i, j] * x[j]
+        x[i] /= L[i, i]
+    return x
+
+
 A = np.loadtxt("../data/Amatrix.txt")
 b = np.loadtxt("../data/bc_vector.txt").reshape(-1, 1)
 x_ref = np.loadtxt("../data/Result.txt").reshape(-1, 1)
 n = len(x_ref)
 
-# sA = sparse.csc_matrix(A)
-# sA_iLU = sparse.linalg.spilu(sA)
-# L=sA_iLU.L.toarray()
-# U=sA_iLU.U.toarray()
-
-# data = loadmat("../data/ILU_ref.mat")
+# data = loadmat("../data/ILUTP_ref.mat")
 # L = data["L"].toarray()
 # U = data["U"].toarray()
 
-L = np.zeros(A.shape)
-U = np.zeros(A.shape)
-N = len(x_ref)
+L, U = ILU0(A)
 
-U[0,0]=A[0,0]
-
-for i in range(n):
-    L[i,i]=1
-    
-for i in range(1, n):
-    U[i, :] = A[i, :]
-    for k in range(i):
-        if A[i, k] != 0:
-            L[i, k] = U[i, k] / U[k, k]
-            for j in range(k, n):
-                if A[i, j] != 0:
-                    U[i, j] = U[i, j] - L[i, k] * U[k, j]
-
-M=np.matmul(L, U)
-A=np.matmul(np.linalg.inv(M), A)
-b=np.dot(np.linalg.inv(M), b)
-
+b = solve_lower(L, b)
 converged = False
 x = np.zeros((n, 1))
 r = b - np.dot(A, x)
@@ -51,9 +67,9 @@ p = np.zeros((n, 1))
 v = np.zeros((n, 1))
 
 tol = 1.0e-20
-limit = 100
+limit = 20
 iters = 0
-tol_list=[]
+tol_list = []
 while iters < limit:
     iters = iters + 1
     tol_current = np.linalg.norm(r) / np.linalg.norm(b)
@@ -64,10 +80,15 @@ while iters < limit:
     rho1 = np.dot(np.transpose(r0_hat), r)
     beta = rho1 / rho0 * alpha / w
     p = r + beta * (p - w * v)
-    v = np.dot(A, p)
+
+    y = solve_upper(U, solve_lower(L, p))
+    v = np.dot(A, y)
+
     alpha = rho1 / np.dot(np.transpose(r0_hat), v)
     s = r - alpha * v
-    t = np.dot(A, s)
+
+    z = solve_upper(U, solve_lower(L, s))
+    t = np.dot(A, z)
     w = np.dot(np.transpose(t), s) / np.dot(np.transpose(t), t)
     rho0 = rho1
     x += alpha * p + w * s
@@ -78,7 +99,7 @@ print("residual", tol_current)
 
 plt.figure()
 plt.semilogy(range(1, iters), tol_list[1:])
-
+x = solve_upper(U, x)
 plt.figure()
 plt.scatter(x_ref, x)
 plt.plot([0, 1], [0, 1], "k--")
