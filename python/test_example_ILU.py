@@ -49,13 +49,12 @@ b = np.loadtxt("../data/bc_vector.txt").reshape(-1, 1)
 x_ref = np.loadtxt("../data/Result.txt").reshape(-1, 1)
 n = len(x_ref)
 
-# data = loadmat("../data/ILUTP_ref.mat")
-# L = data["L"].toarray()
-# U = data["U"].toarray()
+data = loadmat("../data/ILUTP_ref.mat")
+L = data["L"].toarray()
+U = data["U"].toarray()
 
-L, U = ILU0(A)
+# L, U = ILU0(A)
 
-b = solve_lower(L, b)
 converged = False
 x = np.zeros((n, 1))
 r = b - np.dot(A, x)
@@ -91,7 +90,7 @@ while iters < limit:
     t = np.dot(A, z)
     w = np.dot(np.transpose(t), s) / np.dot(np.transpose(t), t)
     rho0 = rho1
-    x += alpha * p + w * s
+    x += alpha * y + w * z
     r = s - w * t
 
 print("number of iterations", iters)
@@ -99,10 +98,9 @@ print("residual", tol_current)
 
 plt.figure()
 plt.semilogy(range(1, iters), tol_list[1:])
-x = solve_upper(U, x)
 plt.figure()
 plt.scatter(x_ref, x)
 plt.plot([0, 1], [0, 1], "k--")
 plt.xlabel("Jacobi")
-plt.ylabel("BiCGStab")
+plt.ylabel("BiCGStab+ILU")
 plt.grid()

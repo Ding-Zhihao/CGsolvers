@@ -23,7 +23,7 @@ perm = np.arange(n)
 
 
 
-plt.figure()
-plt.scatter(U_ref, U)
-plt.figure()
-plt.scatter(L_ref, L)
+# plt.figure()
+# plt.scatter(U_ref, U)
+# plt.figure()
+# plt.scatter(L_ref, L)
