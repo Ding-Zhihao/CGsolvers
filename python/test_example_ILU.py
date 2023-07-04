@@ -49,11 +49,11 @@ b = np.loadtxt("../data/bc_vector.txt").reshape(-1, 1)
 x_ref = np.loadtxt("../data/Result.txt").reshape(-1, 1)
 n = len(x_ref)
 
-data = loadmat("../data/ILUTP_ref.mat")
-L = data["L"].toarray()
-U = data["U"].toarray()
+# data = loadmat("../data/ILUTP_ref.mat")
+# L = data["L"].toarray()
+# U = data["U"].toarray()
 
-# L, U = ILU0(A)
+L, U = ILU0(A)
 
 converged = False
 x = np.zeros((n, 1))
