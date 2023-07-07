@@ -7,6 +7,12 @@ b = np.loadtxt("../data/bc_vector.txt").reshape(-1, 1)
 x_ref = np.loadtxt("../data/Result.txt").reshape(-1, 1)
 n = len(x_ref)
 
+
+for i in range(n):
+    coef=A[i,i]
+    A[i,]/=coef
+    b[i]/=coef
+
 converged = False
 x = np.zeros((n, 1))
 r = b - np.dot(A, x)
@@ -17,7 +23,7 @@ w = 1.0
 p = np.zeros((n, 1))
 v = np.zeros((n, 1))
 
-tol = 1.0e-20
+tol = 1.0e-100
 limit = 100
 iters = 0
 tol_list=[]

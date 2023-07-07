@@ -65,8 +65,8 @@ w = 1.0
 p = np.zeros((n, 1))
 v = np.zeros((n, 1))
 
-tol = 1.0e-20
-limit = 20
+tol = 1.0e-100
+limit = 100
 iters = 0
 tol_list = []
 while iters < limit:
