@@ -33,3 +33,8 @@ yline(tol,'r--');
 legend('No Preconditioner','Default ICHOL','Modified ICHOL','Tolerance','Location','East')
 xlabel('Iteration number')
 ylabel('Relative residual')
+
+load("../data/A_solver.mat");
+A = sparse(A);
+L = ichol(A);
+save("../data/ichol_L_solver.mat", 'L');
