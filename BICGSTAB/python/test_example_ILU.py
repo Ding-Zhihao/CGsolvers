@@ -44,9 +44,14 @@ def solve_lower(L, rhs):
     return x
 
 
-A = np.loadtxt("../data/Amatrix.txt")
-b = np.loadtxt("../data/bc_vector.txt").reshape(-1, 1)
-x_ref = np.loadtxt("../data/Result.txt").reshape(-1, 1)
+# A = np.loadtxt("../data/Amatrix.txt")
+# b = np.loadtxt("../data/bc_vector.txt").reshape(-1, 1)
+# x_ref = np.loadtxt("../data/Result.txt").reshape(-1, 1)
+# n = len(x_ref)
+
+A = loadmat('../data/input')['A']
+b = loadmat('../data/input')['b']
+x_ref = loadmat('../data/pcg')['x']
 n = len(x_ref)
 
 # data = loadmat("../data/ILUTP_ref.mat")
@@ -98,6 +103,8 @@ print("residual", tol_current)
 
 plt.figure()
 plt.semilogy(range(1, iters), tol_list[1:])
+plt.grid()
+
 plt.figure()
 plt.scatter(x_ref, x)
 plt.plot([0, 1], [0, 1], "k--")

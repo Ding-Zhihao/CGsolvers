@@ -10,7 +10,7 @@ def IC(A):
     L[0, 0] = np.sqrt(A[0, 0])
     for i in range(1, N):
         for k in range(i):
-            if A[i, k] != 0 :
+            if A[i, k] != 0:
                 L[i, k] = A[i, k] / L[k, k]
                 for j in range(k):
                     L[i, k] -= L[i, j] * L[k, j]
@@ -42,14 +42,6 @@ def solve_lower(L, rhs):
 A = loadmat('../data/input')['A']
 b = loadmat('../data/input')['b']
 x_ref = loadmat('../data/pcg')['x']
-
-
-A = np.loadtxt("../data/A.txt")
-b = np.loadtxt("../data/b.txt").reshape(-1,1)
-x_ref = np.loadtxt("../data/x_ref.txt")
-
-# savemat('../data/test.mat',{'A':A, 'b':b, 'x_ref': x_ref})
-
 n = len(x_ref)
 L=IC(A)
 
@@ -58,7 +50,7 @@ x = np.zeros((n, 1))
 r = b - np.dot(A, x)
 z=solve_upper(L.transpose(), solve_lower(L, r))
 p = z.copy()
-tol = 1.0e-8
+tol = 1.0e-100
 limit = 100
 iters = 0
 tol_list=[]
@@ -90,9 +82,9 @@ plt.figure()
 plt.semilogy(range(1, iters), tol_list[1:])
 plt.grid()
 
-# plt.figure()
-# plt.scatter(x_ref, x)
-# plt.plot([0, 1], [0, 1], "k--")
-# plt.xlabel("Matlab result")
-# plt.ylabel("ICCG")
-# plt.grid()
+plt.figure()
+plt.scatter(x_ref, x)
+plt.plot([0, 1], [0, 1], "k--")
+plt.xlabel("Matlab result")
+plt.ylabel("ICCG")
+plt.grid()

@@ -8,7 +8,7 @@ from scipy.io import loadmat, savemat
 
 # load data
 A = np.loadtxt("../data/A.txt")
-L_solver = np.loadtxt("../data/LLL.txt")
+L_solver = np.loadtxt("../data/L2.txt")
 L_ref = loadmat("../data/ichol_L_solver.mat")['L'].toarray()
 
 
