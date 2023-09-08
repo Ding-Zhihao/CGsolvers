@@ -10,22 +10,29 @@ def IC(A):
     L[0, 0] = np.sqrt(A[0, 0])
     for i in range(1, N):
         for k in range(i):
-            # 按照Cholesky分解的定义，更新L的非对角线元素
+            if A[i, k] != 0:
+                L[i, k] = A[i, k] / L[k, k]
+                for j in range(k):
+                    L[i, k] -= L[i, j] * L[k, j]
+            L[i, i] -= L[i, k] ** 2
+        L[i, i] = (L[i, i] + A[i, i]) ** 0.5
+    return L
+
+def ICT(A, tau):
+    L = np.zeros(A.shape)
+    N = np.size(A, axis=0)
+    L[0, 0] = np.sqrt(A[0, 0])
+    for i in range(1, N):
+        for k in range(i):
             L[i, k] = A[i, k]
             for j in range(k):
                 L[i, k] -= L[i, j] * L[k, j]
-
-            # 使用范数筛选非零元素
-            norm_of_row_i = np.linalg.norm(A[i, :k + 1], ord=1)    
-            if abs(L[i, k]) <= 0.00001 * norm_of_row_i:
+            norm_of_row_i = np.linalg.norm(A[k, k:], ord=1)    
+            if abs(L[i, k]) < tau * norm_of_row_i:
                 L[i, k] = 0
             else:
                 L[i, k] = L[i, k] / L[k, k]
-
-            # 更新对角线元素
             L[i, i] -= L[i, k] ** 2
-
-        # 更新当前行的对角线元素
         L[i, i] = np.sqrt(L[i, i] + A[i, i])
     return L
 
@@ -49,10 +56,9 @@ def solve_lower(L, rhs):
     return x
 
 
-A = loadmat('../data/input')['A']
-b = loadmat('../data/input')['b']
-x_ref = loadmat('../data/pcg')['x']
-
+# A = loadmat('../data/input')['A']
+# b = loadmat('../data/input')['b']
+# x_ref = loadmat('../data/pcg')['x']
 
 A = np.loadtxt("../data/A.txt")
 b = np.loadtxt("../data/b.txt").reshape(-1,1)
@@ -61,7 +67,8 @@ x_ref = np.loadtxt("../data/x_ref.txt")
 # savemat('../data/test.mat',{'A':A, 'b':b, 'x_ref': x_ref})
 
 n = len(x_ref)
-L=IC(A)
+L=ICT(A, 1e-4)
+# L = loadmat('../data/ICT.mat')['L6'].toarray()
 
 converged = False
 x = np.zeros((n, 1))
@@ -100,9 +107,9 @@ plt.figure()
 plt.semilogy(range(1, iters), tol_list[1:])
 plt.grid()
 
-# plt.figure()
-# plt.scatter(x_ref, x)
-# plt.plot([0, 1], [0, 1], "k--")
-# plt.xlabel("Matlab result")
-# plt.ylabel("ICCG")
-# plt.grid()
+plt.figure()
+plt.scatter(x_ref, x)
+plt.plot([0, 1], [0, 1], "k--")
+plt.xlabel("solver result")
+plt.ylabel("ICCG")
+plt.grid()
