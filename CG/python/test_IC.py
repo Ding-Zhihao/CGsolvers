@@ -14,7 +14,7 @@ data = loadmat("../data/ichol_L.mat")
 L_ref = data["L"].toarray()
 
 L = np.zeros(A.shape)
-N = len(x_ref)
+N = np.size(A,axis=1)
 L[0, 0] = np.sqrt(A[0, 0])
 for i in range(1, N):
     for k in range(i):

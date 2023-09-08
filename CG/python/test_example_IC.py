@@ -10,13 +10,23 @@ def IC(A):
     L[0, 0] = np.sqrt(A[0, 0])
     for i in range(1, N):
         for k in range(i):
-            if A[i, k] != 0 :
-                L[i, k] = A[i, k] / L[k, k]
-                for j in range(k):
-                    L[i, k] -= L[i, j] * L[k, j]
+            # 按照Cholesky分解的定义，更新L的非对角线元素
+            L[i, k] = A[i, k]
+            for j in range(k):
+                L[i, k] -= L[i, j] * L[k, j]
 
+            # 使用范数筛选非零元素
+            norm_of_row_i = np.linalg.norm(A[i, :k + 1], ord=1)    
+            if abs(L[i, k]) <= 0.00001 * norm_of_row_i:
+                L[i, k] = 0
+            else:
+                L[i, k] = L[i, k] / L[k, k]
+
+            # 更新对角线元素
             L[i, i] -= L[i, k] ** 2
-        L[i, i] = (L[i, i] + A[i, i]) ** 0.5
+
+        # 更新当前行的对角线元素
+        L[i, i] = np.sqrt(L[i, i] + A[i, i])
     return L
 
 def solve_upper(U, rhs):
@@ -58,7 +68,7 @@ x = np.zeros((n, 1))
 r = b - np.dot(A, x)
 z=solve_upper(L.transpose(), solve_lower(L, r))
 p = z.copy()
-tol = 1.0e-8
+tol = 1.0e-11
 limit = 100
 iters = 0
 tol_list=[]
