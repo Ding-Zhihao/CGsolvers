@@ -26,8 +26,8 @@ for i in range(1, N):
         L[i, i] -= L[i, k] ** 2
     L[i, i] = (L[i, i] + A[i, i]) ** 0.5
 
-# plt.figure()
-# plt.scatter(L_ref, L)
+plt.figure()
+plt.scatter(L_ref, L)
 
 plt.figure()
 plt.spy(L, markersize=0.1)

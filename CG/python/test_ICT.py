@@ -26,9 +26,10 @@ def ICT(A, tau):
 
 # load data
 A = np.loadtxt("../data/A.txt")
-L_ref = loadmat('../data/ICT.mat')['L6'].toarray()
+L_ref = loadmat('../data/ICT.mat')['L5'].toarray()
+# L_ref = np.loadtxt('../data/L1.txt')
 
-L = ICT(A, 1e-4)
+L = ICT(A, 1e-3)
 
 plt.figure()
 plt.scatter(L_ref, L)

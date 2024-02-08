@@ -56,60 +56,58 @@ def solve_lower(L, rhs):
     return x
 
 
-# A = loadmat('../data/input')['A']
-# b = loadmat('../data/input')['b']
-# x_ref = loadmat('../data/pcg')['x']
-
-A = np.loadtxt("../data/A.txt")
-b = np.loadtxt("../data/b.txt").reshape(-1,1)
-x_ref = np.loadtxt("../data/x_ref.txt")
-
-# savemat('../data/test.mat',{'A':A, 'b':b, 'x_ref': x_ref})
-
+A = loadmat('../data/input')['A']
+b = loadmat('../data/input')['b']
+x_ref = loadmat('../data/ichol_L')['x1']
 n = len(x_ref)
-L=ICT(A, 1e-4)
-# L = loadmat('../data/ICT.mat')['L6'].toarray()
-
-converged = False
-x = np.zeros((n, 1))
-r = b - np.dot(A, x)
-z=solve_upper(L.transpose(), solve_lower(L, r))
-p = z.copy()
-tol = 1.0e-11
-limit = 100
-iters = 0
-tol_list=[]
-
-while iters < limit:
-    iters = iters + 1
-    tol_current = np.linalg.norm(r) / np.linalg.norm(b)
-    tol_list.append(tol_current)
-    print(tol_current)
-    converged = tol_current < tol
-    if converged == True:
-        break
-    
-    u=np.dot(A, p)
-    alpha=np.dot(np.transpose(r), z)/np.dot(np.transpose(p), u)
-    x_new=x+p*alpha
-    r_new=r-u*alpha
-    z_new=solve_upper(L.transpose(), solve_lower(L, r_new))
-    beta=np.dot(np.transpose(r_new), z_new)/np.dot(np.transpose(r), z)
-    p=z_new+p*beta
-    x=x_new
-    r=r_new
-    z=z_new
-
-print("number of iterations", iters)
-print("residual", tol_current)
 
 plt.figure()
-plt.semilogy(range(1, iters), tol_list[1:])
-plt.grid()
+for pow in range(6):
+    print(pow)
+    L=ICT(A, 10**(-pow))
+    # L = loadmat('../data/ICT.mat')['L6'].toarray()
+    # L = np.loadtxt('../data/L1.txt')
 
-plt.figure()
-plt.scatter(x_ref, x)
-plt.plot([0, 1], [0, 1], "k--")
-plt.xlabel("solver result")
-plt.ylabel("ICCG")
-plt.grid()
+    converged = False
+    x = np.zeros((n, 1))
+    r = b - np.dot(A, x)
+    z=solve_upper(L.transpose(), solve_lower(L, r))
+    p = z.copy()
+    tol = 1.0e-10
+    limit = 100
+    iters = 0
+    tol_list=[]
+
+    while iters < limit:
+        iters = iters + 1
+        tol_current = np.linalg.norm(r) / np.linalg.norm(b)
+        tol_list.append(tol_current)
+        print(tol_current)
+        converged = tol_current < tol
+        if converged == True:
+            break
+        
+        u=np.dot(A, p)
+        alpha=np.dot(np.transpose(r), z)/np.dot(np.transpose(p), u)
+        x_new=x+p*alpha
+        r_new=r-u*alpha
+        z_new=solve_upper(L.transpose(), solve_lower(L, r_new))
+        beta=np.dot(np.transpose(r_new), z_new)/np.dot(np.transpose(r), z)
+        p=z_new+p*beta
+        x=x_new
+        r=r_new
+        z=z_new
+
+    print("number of iterations", iters)
+    print("residual", tol_current)
+
+# plt.figure()
+    plt.semilogy(range(1, iters), tol_list[1:], label='1e-'+str(pow))
+    plt.grid()
+plt.legend()
+# plt.figure()
+# plt.scatter(x_ref, x)
+# plt.plot([0, 1], [0, 1], "k--")
+# plt.xlabel("MATLAB result")
+# plt.ylabel("ICCG")
+# plt.grid()

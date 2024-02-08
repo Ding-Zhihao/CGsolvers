@@ -3,9 +3,9 @@ import math
 import matplotlib.pyplot as plt
 from scipy.io import loadmat, savemat
 
-A = loadmat('../data/input')['A']
-b = loadmat('../data/input')['b']
-x_ref = loadmat('../data/pcg')['x']
+A = loadmat('../data/test')['A']
+b = loadmat('../data/test')['b']
+x_ref = loadmat('../data/test')['x_ref'].T
 n = len(x_ref)
 
 converged = False
