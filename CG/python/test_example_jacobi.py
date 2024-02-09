@@ -3,23 +3,23 @@ import math
 import matplotlib.pyplot as plt
 from scipy.io import loadmat, savemat
 
-A = loadmat('../data/test')['A']
-b = loadmat('../data/test')['b']
-x_ref = loadmat('../data/test')['x_ref'].T
+A = loadmat("../data/test")["A"]
+b = loadmat("../data/test")["b"]
+x_ref = loadmat("../data/test")["x_ref"].T
 n = len(x_ref)
 
 converged = False
 x = np.zeros((n, 1))
 r = b - np.dot(A, x)
 
-precon = A.diagonal().reshape(-1,1)
-z = r[:]*precon[:]
+precon = A.diagonal().reshape(-1, 1)
+z = r[:] * precon[:]
 p = z.copy()
 
 tol = 1.0e-100
 limit = 100
 iters = 0
-tol_list=[]
+tol_list = []
 
 while iters < limit:
     iters = iters + 1
@@ -28,16 +28,16 @@ while iters < limit:
     converged = tol_current < tol
     if converged == True:
         break
-    u=np.dot(A, p)
-    alpha=np.dot(np.transpose(r), z)/np.dot(np.transpose(p), u)
-    x_new=x+p*alpha
-    r_new=r-u*alpha
-    z_new=precon[:]*r_new
-    beta=np.dot(np.transpose(r_new), z_new)/np.dot(np.transpose(r), z)
-    p=z_new+p*beta
-    x=x_new
-    r=r_new
-    z=z_new
+    u = np.dot(A, p)
+    alpha = np.dot(np.transpose(r), z) / np.dot(np.transpose(p), u)
+    x_new = x + p * alpha
+    r_new = r - u * alpha
+    z_new = precon[:] * r_new
+    beta = np.dot(np.transpose(r_new), z_new) / np.dot(np.transpose(r), z)
+    p = z_new + p * beta
+    x = x_new
+    r = r_new
+    z = z_new
 
 print("number of iterations", iters)
 print("residual", tol_current)

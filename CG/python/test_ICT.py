@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from scipy import sparse
 from scipy.sparse import linalg
 from scipy.io import loadmat, savemat
+from csr_lib import *
+
 
 def ICT(A, tau):
     L = np.zeros(A.shape)
@@ -15,7 +17,7 @@ def ICT(A, tau):
             L[i, k] = A[i, k]
             for j in range(k):
                 L[i, k] -= L[i, j] * L[k, j]
-            norm_of_row_i = np.linalg.norm(A[k, k:], ord=1)    
+            norm_of_row_i = np.linalg.norm(A[k, k:], ord=1)
             if abs(L[i, k]) < tau * norm_of_row_i:
                 L[i, k] = 0
             else:
@@ -24,12 +26,20 @@ def ICT(A, tau):
         L[i, i] = np.sqrt(L[i, i] + A[i, i])
     return L
 
+
 # load data
 A = np.loadtxt("../data/A.txt")
-L_ref = loadmat('../data/ICT.mat')['L5'].toarray()
-# L_ref = np.loadtxt('../data/L1.txt')
+L_ref = loadmat("../data/ICT.mat")["L5"]
 
+import time
+
+t1 = time.time()
 L = ICT(A, 1e-3)
-
-plt.figure()
-plt.scatter(L_ref, L)
+t2 = time.time()
+print(t2 - t1)
+L_ref = dense_to_csr(L_ref)
+L = dense_to_csr(L)
+print(np.allclose(L.data, L_ref.data))
+assert np.array_equal(L.indices, L_ref.indices)
+assert np.array_equal(L.indptr, L_ref.indptr)
+assert np.array_equal(L.nnz, L_ref.nnz)

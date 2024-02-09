@@ -5,80 +5,47 @@ from scipy import sparse
 from scipy.io import loadmat, savemat
 from csr_lib import *
 from test_ICT_csr import *
-import time
 
 
-def IC(A):
-    L = np.zeros(A.shape)
-    N = np.size(A, axis=0)
-    L[0, 0] = np.sqrt(A[0, 0])
-    for i in range(1, N):
-        for k in range(i):
-            if A[i, k] != 0:
-                L[i, k] = A[i, k] / L[k, k]
-                for j in range(k):
-                    L[i, k] -= L[i, j] * L[k, j]
-            L[i, i] -= L[i, k] ** 2
-        L[i, i] = (L[i, i] + A[i, i]) ** 0.5
-    return L
-
-
-def ICT(A, tau):
-    L = np.zeros(A.shape)
-    N = np.size(A, axis=0)
-    L[0, 0] = np.sqrt(A[0, 0])
-    for i in range(1, N):
-        for k in range(i):
-            L[i, k] = A[i, k]
-            for j in range(k):
-                L[i, k] -= L[i, j] * L[k, j]
-            norm_of_row_i = np.linalg.norm(A[k, k:], ord=1)
-            if abs(L[i, k]) < tau * norm_of_row_i:
-                L[i, k] = 0
-            else:
-                L[i, k] = L[i, k] / L[k, k]
-            L[i, i] -= L[i, k] ** 2
-        L[i, i] = np.sqrt(L[i, i] + A[i, i])
-    return L
-
-
-def solve_upper(U, rhs):
-    x = np.zeros(rhs.shape)
-    for i in range(len(x) - 1, -1, -1):
-        x[i] = rhs[i]
-        for j in range(i + 1, len(x)):
-            x[i] -= U[i, j] * x[j]
-        x[i] /= U[i, i]
-    return x
-
-
-def solve_lower(L, rhs):
+def solve_lower_csr(L, rhs):
     x = np.zeros(rhs.shape)
     for i in range(len(x)):
         x[i] = rhs[i]
-        for j in range(i):
-            x[i] -= L[i, j] * x[j]
-        x[i] /= L[i, i]
+        row_csr = get_csr_row(L, i)
+        for j in range(row_csr.nnz - 1):
+            x[i] -= row_csr.data[j] * x[row_csr.indices[j]]
+        x[i] /= row_csr.data[-1]
     return x
 
-if __name__ == "__main__":
 
+def solve_upper_csr(U, rhs):
+    x = np.zeros(rhs.shape)
+    for i in range(len(x) - 1, -1, -1):
+        x[i] = rhs[i]
+        row_csr = get_csr_row(U, i)
+        for j in range(1, row_csr.nnz):
+            x[i] -= row_csr.data[j] * x[row_csr.indices[j]]
+        x[i] /= row_csr.data[0]
+    return x
+
+
+if __name__ == "__main__":
     A = loadmat("../data/input")["A"]
-    A_csr = dense_to_csr(A)
     b = loadmat("../data/input")["b"]
     x_ref = loadmat("../data/ichol_L")["x1"]
     n = len(x_ref)
+    A = dense_to_csr(A)
 
     plt.figure()
     for pow in range(6):
         print(pow)
         tau = 10 ** (-pow)
         t1 = time.time()
-        L = ICT(A, tau)
+        L = ICT_csr(A, tau)
         converged = False
         x = np.zeros((n, 1))
-        r = b - np.dot(A, x)
-        z = solve_upper(L.transpose(), solve_lower(L, r))
+        r = b - mat_dot_vec(A, x)
+        z = solve_upper_csr(L.transpose(), solve_lower_csr(L, r))
         p = z.copy()
         tol = 1.0e-20
         limit = 100
@@ -94,11 +61,11 @@ if __name__ == "__main__":
             if converged == True:
                 break
 
-            u = np.dot(A, p)
+            u = mat_dot_vec(A, p)
             alpha = np.dot(np.transpose(r), z) / np.dot(np.transpose(p), u)
             x_new = x + p * alpha
             r_new = r - u * alpha
-            z_new = solve_upper(L.transpose(), solve_lower(L, r_new))
+            z_new = solve_upper_csr(L.transpose(), solve_lower_csr(L, r_new))
             beta = np.dot(np.transpose(r_new), z_new) / np.dot(np.transpose(r), z)
             p = z_new + p * beta
             x = x_new
