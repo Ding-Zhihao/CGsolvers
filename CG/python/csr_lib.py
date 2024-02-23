@@ -141,8 +141,8 @@ def mat_dot_vec(mat, vec):
     return out
 
 
-def mat_dot_mat(A, B):
-    assert A.shape[1] == B.shape[0]
+def mat_dot_mat(A_csr, B_csr):
+    assert A_csr.shape[1] == B_csr.shape[0]
     B_csr_tr = B_csr.transpose()
     nnz = 0
     data = []

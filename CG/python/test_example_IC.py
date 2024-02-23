@@ -7,7 +7,6 @@ from csr_lib import *
 from test_ICT_csr import *
 import time
 
-
 def IC(A):
     L = np.zeros(A.shape)
     N = np.size(A, axis=0)
@@ -69,48 +68,46 @@ if __name__ == "__main__":
     x_ref = loadmat("../data/ichol_L")["x1"]
     n = len(x_ref)
 
+
+    t1 = time.time()
+    L = IC(A)
+    converged = False
+    x = np.zeros((n, 1))
+    r = b - np.dot(A, x)
+    z = solve_upper(L.transpose(), solve_lower(L, r))
+    p = z.copy()
+    tol = 1.0e-20
+    limit = 100
+    iters = 0
+    tol_list = []
+
+    while iters < limit:
+        iters = iters + 1
+        tol_current = np.linalg.norm(r) / np.linalg.norm(b)
+        tol_list.append(tol_current)
+        print(tol_current)
+        converged = tol_current < tol
+        if converged == True:
+            break
+
+        u = np.dot(A, p)
+        alpha = np.dot(np.transpose(r), z) / np.dot(np.transpose(p), u)
+        x_new = x + p * alpha
+        r_new = r - u * alpha
+        z_new = solve_upper(L.transpose(), solve_lower(L, r_new))
+        beta = np.dot(np.transpose(r_new), z_new) / np.dot(np.transpose(r), z)
+        p = z_new + p * beta
+        x = x_new
+        r = r_new
+        z = z_new
+
+    t2 = time.time()
+
+    print("number of iterations", iters)
+    print("residual", tol_current)
+    print("tol " + str(tau) + " time used", t2 - t1, " s")
+        
     plt.figure()
-    for pow in range(6):
-        print(pow)
-        tau = 10 ** (-pow)
-        t1 = time.time()
-        L = ICT(A, tau)
-        converged = False
-        x = np.zeros((n, 1))
-        r = b - np.dot(A, x)
-        z = solve_upper(L.transpose(), solve_lower(L, r))
-        p = z.copy()
-        tol = 1.0e-20
-        limit = 100
-        iters = 0
-        tol_list = []
-
-        while iters < limit:
-            iters = iters + 1
-            tol_current = np.linalg.norm(r) / np.linalg.norm(b)
-            tol_list.append(tol_current)
-            print(tol_current)
-            converged = tol_current < tol
-            if converged == True:
-                break
-
-            u = np.dot(A, p)
-            alpha = np.dot(np.transpose(r), z) / np.dot(np.transpose(p), u)
-            x_new = x + p * alpha
-            r_new = r - u * alpha
-            z_new = solve_upper(L.transpose(), solve_lower(L, r_new))
-            beta = np.dot(np.transpose(r_new), z_new) / np.dot(np.transpose(r), z)
-            p = z_new + p * beta
-            x = x_new
-            r = r_new
-            z = z_new
-
-        t2 = time.time()
-
-        print("number of iterations", iters)
-        print("residual", tol_current)
-        print("tol " + str(tau) + " time used", t2 - t1, " s")
-
-        plt.semilogy(range(1, iters), tol_list[1:], label="1e-" + str(pow))
+    plt.semilogy(range(1, iters), tol_list[1:], label="1e-" + str(pow))
     plt.grid()
     plt.legend()
